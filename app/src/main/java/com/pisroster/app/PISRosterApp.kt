@@ -12,7 +12,14 @@ import kotlinx.coroutines.launch
 
 class PISRosterApp : Application() {
     
-    val database: PISDatabase by lazy { PISDatabase.getDatabase(this) }
+    val database: PISDatabase by lazy {
+        try {
+            PISDatabase.getDatabase(this)
+        } catch (e: Exception) {
+            Log.e("PISRosterApp", "Failed to initialize database", e)
+            throw e // Let it propagate so we can see the error
+        }
+    }
     
     val userRepository: UserRepository by lazy { UserRepository(database.userDao()) }
     val teacherRepository: TeacherRepository by lazy { TeacherRepository(database.teacherDao()) }
@@ -36,15 +43,19 @@ class PISRosterApp : Application() {
         super.onCreate()
         instance = this
         
+        Log.i("PISRosterApp", "Application starting...")
+        
         // Initialize test data with error handling
         applicationScope.launch {
             try {
+                Log.i("PISRosterApp", "Initializing test data...")
                 val testDataInitializer = TestDataInitializer(
                     userRepository,
                     teacherRepository,
                     studentRepository
                 )
                 testDataInitializer.initializeTestData()
+                Log.i("PISRosterApp", "Test data initialized successfully")
             } catch (e: Exception) {
                 Log.e("PISRosterApp", "Error initializing test data", e)
             }

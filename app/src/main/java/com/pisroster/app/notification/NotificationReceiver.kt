@@ -9,7 +9,6 @@ import android.content.Intent
 import android.os.Build
 import androidx.core.app.NotificationCompat
 import com.pisroster.app.MainActivity
-import com.pisroster.app.R
 
 class NotificationReceiver : BroadcastReceiver() {
     
