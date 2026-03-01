@@ -54,6 +54,7 @@ dependencies {
     // Core Android
     implementation("androidx.core:core-ktx:1.12.0")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.7.0")
+    implementation("androidx.lifecycle:lifecycle-runtime-compose:2.7.0")
     implementation("androidx.activity:activity-compose:1.8.2")
 
     // Compose BOM
@@ -66,6 +67,7 @@ dependencies {
 
     // Navigation
     implementation("androidx.navigation:navigation-compose:2.7.6")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.7.0")
 
     // Room Database
     implementation("androidx.room:room-runtime:2.6.1")
@@ -79,7 +81,6 @@ dependencies {
     implementation("androidx.camera:camera-view:1.3.1")
 
     // File Picker
-    implementation("io.github.lottiefiles:dotlottie-compose:2.0.0")
     implementation("androidx.documentfile:documentfile:1.0.1")
 
     // PDF Generation

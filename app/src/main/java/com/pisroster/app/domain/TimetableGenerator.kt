@@ -133,16 +133,16 @@ class TimetableGenerator(
         
         // Get time slots (excluding breaks)
         val timeSlots = listOf(
-            TimeSlotEntity(1, "07:30", "08:15", false),
-            TimeSlotEntity(2, "08:15", "09:00", false),
-            TimeSlotEntity(3, "09:00", "09:45", false),
-            TimeSlotEntity(5, "10:05", "10:50", false),
-            TimeSlotEntity(6, "10:50", "11:35", false),
-            TimeSlotEntity(7, "11:35", "12:20", false),
-            TimeSlotEntity(8, "12:20", "13:05", false),
-            TimeSlotEntity(10, "13:50", "14:35", false),
-            TimeSlotEntity(11, "14:35", "15:20", false),
-            TimeSlotEntity(12, "15:20", "16:05", false)
+            TimeSlotEntity(1, 1, "07:30", "08:15", false, 0),
+            TimeSlotEntity(2, 2, "08:15", "09:00", false, 0),
+            TimeSlotEntity(3, 3, "09:00", "09:45", false, 0),
+            TimeSlotEntity(5, 5, "10:05", "10:50", false, 0),
+            TimeSlotEntity(6, 6, "10:50", "11:35", false, 0),
+            TimeSlotEntity(7, 7, "11:35", "12:20", false, 0),
+            TimeSlotEntity(8, 8, "12:20", "13:05", false, 0),
+            TimeSlotEntity(10, 10, "13:50", "14:35", false, 0),
+            TimeSlotEntity(11, 11, "14:35", "15:20", false, 0),
+            TimeSlotEntity(12, 12, "15:20", "16:05", false, 0)
         )
         
         // Assign subjects to periods (rotation for variety)

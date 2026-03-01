@@ -10,7 +10,9 @@ import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -140,16 +142,14 @@ fun MainApp(authViewModel: AuthViewModel) {
             
             composable(Screen.Dashboard.route) {
                 val app = PISRosterApp.instance
-                val dashboardViewModel = androidx.lifecycle.viewModelComposable(
-                    key = "dashboard",
-                    factory = androidx.lifecycle.ViewModelProvider.Factory {
-                        com.pisroster.app.ui.viewmodel.DashboardViewModel.Factory(
-                            app.teacherRepository,
-                            app.studentRepository,
-                            app.userRepository
-                        )
-                    }
-                ) { com.pisroster.app.ui.viewmodel.DashboardViewModel::class.java }
+                val dashboardViewModel = ViewModelProvider(
+                    androidx.compose.ui.platform.LocalContext.current as ComponentActivity,
+                    com.pisroster.app.ui.viewmodel.DashboardViewModel.Factory(
+                        app.teacherRepository,
+                        app.studentRepository,
+                        app.userRepository
+                    )
+                )[com.pisroster.app.ui.viewmodel.DashboardViewModel::class.java]
                 
                 val dashboardState by dashboardViewModel.state.collectAsStateWithLifecycle()
                 

@@ -102,7 +102,7 @@ class TimetableRepository(
     suspend fun deleteAvailability(availability: TeacherAvailabilityEntity) = 
         teacherAvailabilityDao.delete(availability)
     
-    suspend fun deleteByTeacher(teacherId: Long) = teacherAvailabilityDao.deleteByTeacher(teacherId)
+    suspend fun deleteAvailabilityByTeacher(teacherId: Long) = teacherAvailabilityDao.deleteByTeacher(teacherId)
     
     suspend fun deleteAllAvailability() = teacherAvailabilityDao.deleteAll()
 }
