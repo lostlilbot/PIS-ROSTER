@@ -42,25 +42,31 @@ class PISRosterApp : Application() {
         
         // Initialize test data synchronously to ensure it's ready before UI starts
         try {
-            Log.i("PISRosterApp", "Initializing test data synchronously...")
+            Log.i("PISRosterApp", "Initializing test data...")
             runBlocking(Dispatchers.IO) {
-                // First ensure the database callback has completed by checking if settings exist
-                val existingSettings = settingsRepository.getSettingsSync()
-                Log.i("PISRosterApp", "Database ready with settings: $existingSettings")
-                
-                // Now initialize test data
-                val testDataInitializer = TestDataInitializer(
-                    userRepository,
-                    teacherRepository,
-                    studentRepository
-                )
-                testDataInitializer.initializeTestData()
+                try {
+                    // First ensure the database callback has completed by checking if settings exist
+                    val existingSettings = settingsRepository.getSettingsSync()
+                    Log.i("PISRosterApp", "Database ready with settings: $existingSettings")
+                    
+                    // Now initialize test data (this is idempotent - safe to call multiple times)
+                    val testDataInitializer = TestDataInitializer(
+                        userRepository,
+                        teacherRepository,
+                        studentRepository
+                    )
+                    testDataInitializer.initializeTestData()
+                    Log.i("PISRosterApp", "Test data initialized successfully")
+                } catch (e: Exception) {
+                    Log.e("PISRosterApp", "Error during data initialization", e)
+                }
             }
-            Log.i("PISRosterApp", "Test data initialized successfully")
         } catch (e: Exception) {
             Log.e("PISRosterApp", "Error during initialization", e)
             // Continue anyway - the app might work with partial data
         }
+        
+        Log.i("PISRosterApp", "Application ready")
     }
     
     companion object {

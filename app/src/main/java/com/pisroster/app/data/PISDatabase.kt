@@ -1,6 +1,7 @@
 package com.pisroster.app.data
 
 import android.content.Context
+import android.util.Log
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
@@ -60,9 +61,15 @@ abstract class PISDatabase : RoomDatabase() {
         private class DatabaseCallback : Callback() {
             override fun onCreate(db: SupportSQLiteDatabase) {
                 super.onCreate(db)
+                // Run asynchronously but with error handling
                 INSTANCE?.let { database ->
                     CoroutineScope(Dispatchers.IO).launch {
-                        populateDefaultData(database)
+                        try {
+                            populateDefaultData(database)
+                            Log.i("PISDatabase", "Default data populated successfully")
+                        } catch (e: Exception) {
+                            Log.e("PISDatabase", "Error populating default data", e)
+                        }
                     }
                 }
             }
