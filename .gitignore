@@ -46,3 +46,6 @@ build/
 app/build/
 !gradle/wrapper/gradle-wrapper.jar
 gradle-8.2.2-bin.zip
+
+# local properties (SDK location)
+local.properties

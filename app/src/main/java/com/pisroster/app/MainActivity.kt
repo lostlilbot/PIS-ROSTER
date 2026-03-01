@@ -1,6 +1,7 @@
 package com.pisroster.app
 
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.fillMaxSize
@@ -11,6 +12,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -30,19 +32,37 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         
-        val app = application as PISRosterApp
-        val authViewModel = ViewModelProvider(
-            this,
-            AuthViewModel.Factory(app.userRepository, app.settingsRepository)
-        )[AuthViewModel::class.java]
-        
-        setContent {
-            PISRosterTheme {
-                Surface(
-                    modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background
-                ) {
-                    MainApp(authViewModel = authViewModel)
+        try {
+            val app = application as PISRosterApp
+            val authViewModel = ViewModelProvider(
+                this,
+                AuthViewModel.Factory(app.userRepository, app.settingsRepository)
+            )[AuthViewModel::class.java]
+            
+            setContent {
+                PISRosterTheme {
+                    Surface(
+                        modifier = Modifier.fillMaxSize(),
+                        color = MaterialTheme.colorScheme.background
+                    ) {
+                        MainApp(authViewModel = authViewModel)
+                    }
+                }
+            }
+        } catch (e: Exception) {
+            Log.e("MainActivity", "Error during initialization", e)
+            // Show error UI if compose fails
+            setContent {
+                MaterialTheme {
+                    Surface(
+                        modifier = Modifier.fillMaxSize(),
+                        color = MaterialTheme.colorScheme.errorContainer
+                    ) {
+                        Text(
+                            text = "Error starting app: ${e.message}",
+                            modifier = Modifier.padding(16.dp)
+                        )
+                    }
                 }
             }
         }

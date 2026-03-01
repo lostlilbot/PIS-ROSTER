@@ -1,6 +1,7 @@
 package com.pisroster.app
 
 import android.app.Application
+import android.util.Log
 import com.pisroster.app.data.PISDatabase
 import com.pisroster.app.data.TestDataInitializer
 import com.pisroster.app.data.repository.*
@@ -35,14 +36,18 @@ class PISRosterApp : Application() {
         super.onCreate()
         instance = this
         
-        // Initialize test data
+        // Initialize test data with error handling
         applicationScope.launch {
-            val testDataInitializer = TestDataInitializer(
-                userRepository,
-                teacherRepository,
-                studentRepository
-            )
-            testDataInitializer.initializeTestData()
+            try {
+                val testDataInitializer = TestDataInitializer(
+                    userRepository,
+                    teacherRepository,
+                    studentRepository
+                )
+                testDataInitializer.initializeTestData()
+            } catch (e: Exception) {
+                Log.e("PISRosterApp", "Error initializing test data", e)
+            }
         }
     }
     
