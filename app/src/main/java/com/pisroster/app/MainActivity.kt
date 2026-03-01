@@ -4,14 +4,13 @@ import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -34,11 +33,25 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         
         try {
-            val app = application as PISRosterApp
-            val authViewModel = ViewModelProvider(
-                this,
-                AuthViewModel.Factory(app.userRepository, app.settingsRepository)
-            )[AuthViewModel::class.java]
+            // Get the application instance safely
+            val app = application as? PISRosterApp
+            if (app == null) {
+                Log.e("MainActivity", "Application is not PISRosterApp")
+                showError("Application initialization failed")
+                return
+            }
+            
+            // Create ViewModel with null safety
+            val authViewModel = try {
+                ViewModelProvider(
+                    this,
+                    AuthViewModel.Factory(app.userRepository, app.settingsRepository)
+                )[AuthViewModel::class.java]
+            } catch (e: Exception) {
+                Log.e("MainActivity", "Failed to create AuthViewModel", e)
+                showError("Failed to initialize: ${e.message}")
+                return
+            }
             
             setContent {
                 PISRosterTheme {
@@ -52,16 +65,33 @@ class MainActivity : ComponentActivity() {
             }
         } catch (e: Exception) {
             Log.e("MainActivity", "Error during initialization", e)
-            // Show error UI if compose fails
-            setContent {
-                MaterialTheme {
-                    Surface(
-                        modifier = Modifier.fillMaxSize(),
-                        color = MaterialTheme.colorScheme.errorContainer
+            showError("Error starting app: ${e.message}")
+        }
+    }
+    
+    private fun showError(message: String) {
+        setContent {
+            MaterialTheme {
+                Surface(
+                    modifier = Modifier.fillMaxSize(),
+                    color = MaterialTheme.colorScheme.errorContainer
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(16.dp),
+                        verticalArrangement = Arrangement.Center,
+                        horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         Text(
-                            text = "Error starting app: ${e.message}",
-                            modifier = Modifier.padding(16.dp)
+                            text = "Error",
+                            style = MaterialTheme.typography.headlineMedium,
+                            color = MaterialTheme.colorScheme.error
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            text = message,
+                            style = MaterialTheme.typography.bodyMedium
                         )
                     }
                 }

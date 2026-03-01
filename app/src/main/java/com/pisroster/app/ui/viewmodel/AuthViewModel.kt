@@ -1,5 +1,6 @@
 package com.pisroster.app.ui.viewmodel
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -36,15 +37,27 @@ class AuthViewModel(
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true) }
             
-            val settings = settingsRepository.getSettingsSync()
-            val hasAdmin = userRepository.getCountByRole("ADMIN") > 0
-            
-            _state.update { 
-                it.copy(
-                    isFirstLaunch = !hasAdmin,
-                    settings = settings,
-                    isLoading = false
-                )
+            try {
+                val settings = settingsRepository.getSettingsSync()
+                val hasAdmin = userRepository.getCountByRole("ADMIN") > 0
+                
+                _state.update { 
+                    it.copy(
+                        isFirstLaunch = !hasAdmin,
+                        settings = settings,
+                        isLoading = false
+                    )
+                }
+            } catch (e: Exception) {
+                Log.e("AuthViewModel", "Error checking first launch", e)
+                // Default to wizard screen on error
+                _state.update { 
+                    it.copy(
+                        isFirstLaunch = true,
+                        isLoading = false,
+                        error = "Error loading settings: ${e.message}"
+                    )
+                }
             }
         }
     }

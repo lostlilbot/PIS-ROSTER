@@ -5,10 +5,7 @@ import android.util.Log
 import com.pisroster.app.data.PISDatabase
 import com.pisroster.app.data.TestDataInitializer
 import com.pisroster.app.data.repository.*
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 
 class PISRosterApp : Application() {
@@ -37,9 +34,6 @@ class PISRosterApp : Application() {
     val documentRepository: DocumentRepository by lazy { DocumentRepository(database.documentDao()) }
     val settingsRepository: SettingsRepository by lazy { SettingsRepository(database.schoolSettingsDao()) }
     
-    // Application scope for async operations
-    private val applicationScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
-    
     override fun onCreate() {
         super.onCreate()
         instance = this
@@ -50,6 +44,11 @@ class PISRosterApp : Application() {
         try {
             Log.i("PISRosterApp", "Initializing test data synchronously...")
             runBlocking(Dispatchers.IO) {
+                // First ensure the database callback has completed by checking if settings exist
+                val existingSettings = settingsRepository.getSettingsSync()
+                Log.i("PISRosterApp", "Database ready with settings: $existingSettings")
+                
+                // Now initialize test data
                 val testDataInitializer = TestDataInitializer(
                     userRepository,
                     teacherRepository,
@@ -59,7 +58,8 @@ class PISRosterApp : Application() {
             }
             Log.i("PISRosterApp", "Test data initialized successfully")
         } catch (e: Exception) {
-            Log.e("PISRosterApp", "Error initializing test data", e)
+            Log.e("PISRosterApp", "Error during initialization", e)
+            // Continue anyway - the app might work with partial data
         }
     }
     
