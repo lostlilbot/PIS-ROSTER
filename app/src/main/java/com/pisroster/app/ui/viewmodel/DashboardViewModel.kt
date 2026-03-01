@@ -11,6 +11,7 @@ import com.pisroster.app.data.repository.TeacherRepository
 import com.pisroster.app.data.repository.UserRepository
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.launch
 
 data class DashboardState(
     val isLoading: Boolean = false,
@@ -43,17 +44,21 @@ class DashboardViewModel(
                 val teacherCount = teacherRepository.getTeacherCount()
                 val studentCount = studentRepository.getStudentCount()
                 
-                teacherRepository.getAllTeachers().collect { teachers ->
-                    studentRepository.getAllStudents().collect { students ->
-                        _state.update { 
-                            it.copy(
-                                isLoading = false,
-                                teacherCount = teacherCount,
-                                studentCount = studentCount,
-                                teachers = teachers,
-                                students = students
-                            ) 
-                        }
+                // Use combine to properly handle both flows
+                kotlinx.coroutines.flow.combine(
+                    teacherRepository.getAllTeachers(),
+                    studentRepository.getAllStudents()
+                ) { teachers, students ->
+                    Pair(teachers, students)
+                }.collect { (teachers, students) ->
+                    _state.update { 
+                        it.copy(
+                            isLoading = false,
+                            teacherCount = teacherCount,
+                            studentCount = studentCount,
+                            teachers = teachers,
+                            students = students
+                        ) 
                     }
                 }
             } catch (e: Exception) {
