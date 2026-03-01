@@ -9,6 +9,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 
 class PISRosterApp : Application() {
     
@@ -45,20 +46,20 @@ class PISRosterApp : Application() {
         
         Log.i("PISRosterApp", "Application starting...")
         
-        // Initialize test data with error handling
-        applicationScope.launch {
-            try {
-                Log.i("PISRosterApp", "Initializing test data...")
+        // Initialize test data synchronously to ensure it's ready before UI starts
+        try {
+            Log.i("PISRosterApp", "Initializing test data synchronously...")
+            runBlocking(Dispatchers.IO) {
                 val testDataInitializer = TestDataInitializer(
                     userRepository,
                     teacherRepository,
                     studentRepository
                 )
                 testDataInitializer.initializeTestData()
-                Log.i("PISRosterApp", "Test data initialized successfully")
-            } catch (e: Exception) {
-                Log.e("PISRosterApp", "Error initializing test data", e)
             }
+            Log.i("PISRosterApp", "Test data initialized successfully")
+        } catch (e: Exception) {
+            Log.e("PISRosterApp", "Error initializing test data", e)
         }
     }
     

@@ -41,25 +41,22 @@ class DashboardViewModel(
             _state.update { it.copy(isLoading = true) }
             
             try {
+                // Get counts first
                 val teacherCount = teacherRepository.getTeacherCount()
                 val studentCount = studentRepository.getStudentCount()
                 
-                // Use combine to properly handle both flows
-                kotlinx.coroutines.flow.combine(
-                    teacherRepository.getAllTeachers(),
-                    studentRepository.getAllStudents()
-                ) { teachers, students ->
-                    Pair(teachers, students)
-                }.collect { (teachers, students) ->
-                    _state.update { 
-                        it.copy(
-                            isLoading = false,
-                            teacherCount = teacherCount,
-                            studentCount = studentCount,
-                            teachers = teachers,
-                            students = students
-                        ) 
-                    }
+                // Collect the lists once using first() instead of collect
+                val teachers = teacherRepository.getAllTeachers().first()
+                val students = studentRepository.getAllStudents().first()
+                
+                _state.update { 
+                    it.copy(
+                        isLoading = false,
+                        teacherCount = teacherCount,
+                        studentCount = studentCount,
+                        teachers = teachers,
+                        students = students
+                    ) 
                 }
             } catch (e: Exception) {
                 _state.update { 

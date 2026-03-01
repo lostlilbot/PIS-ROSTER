@@ -27,6 +27,7 @@ import com.pisroster.app.ui.navigation.bottomNavItems
 import com.pisroster.app.ui.screens.*
 import com.pisroster.app.ui.theme.PISRosterTheme
 import com.pisroster.app.ui.viewmodel.AuthViewModel
+import com.pisroster.app.ui.viewmodel.DashboardViewModel
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -161,15 +162,17 @@ fun MainApp(authViewModel: AuthViewModel) {
             }
             
             composable(Screen.Dashboard.route) {
-                val app = PISRosterApp.instance
-                val dashboardViewModel = ViewModelProvider(
-                    androidx.compose.ui.platform.LocalContext.current as ComponentActivity,
-                    com.pisroster.app.ui.viewmodel.DashboardViewModel.Factory(
-                        app.teacherRepository,
-                        app.studentRepository,
-                        app.userRepository
+                val parentEntry = remember(navBackStackEntry) {
+                    navController.getBackStackEntry(Screen.Dashboard.route)
+                }
+                val dashboardViewModel: DashboardViewModel = viewModel(
+                    viewModelStoreOwner = parentEntry,
+                    factory = DashboardViewModel.Factory(
+                        PISRosterApp.instance.teacherRepository,
+                        PISRosterApp.instance.studentRepository,
+                        PISRosterApp.instance.userRepository
                     )
-                )[com.pisroster.app.ui.viewmodel.DashboardViewModel::class.java]
+                )
                 
                 val dashboardState by dashboardViewModel.state.collectAsStateWithLifecycle()
                 
