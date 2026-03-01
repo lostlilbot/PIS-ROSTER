@@ -17,6 +17,7 @@ data class UserEntity(
     val email: String? = null,
     val phone: String? = null,
     val photoPath: String? = null,
+    val mustChangePassword: Boolean = true, // Require password change on first login
     val createdAt: Long = System.currentTimeMillis(),
     val updatedAt: Long = System.currentTimeMillis()
 )

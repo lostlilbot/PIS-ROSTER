@@ -11,6 +11,7 @@ sealed class Screen(
 ) {
     object Login : Screen("login", "Login", Icons.Default.Login)
     object Wizard : Screen("wizard", "Setup", Icons.Default.Settings)
+    object PasswordChange : Screen("password_change", "Change Password", Icons.Default.Lock)
     object Dashboard : Screen("dashboard", "Dashboard", Icons.Default.Dashboard)
     object Timetable : Screen("timetable", "Timetable", Icons.Default.Schedule)
     object Attendance : Screen("attendance", "Attendance", Icons.Default.CheckCircle)

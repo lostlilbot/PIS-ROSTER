@@ -16,7 +16,8 @@ data class AuthState(
     val currentUser: UserEntity? = null,
     val isFirstLaunch: Boolean = true,
     val error: String? = null,
-    val settings: SchoolSettingsEntity? = null
+    val settings: SchoolSettingsEntity? = null,
+    val mustChangePassword: Boolean = false
 )
 
 class AuthViewModel(
@@ -59,7 +60,8 @@ class AuthViewModel(
                         it.copy(
                             isLoggedIn = true,
                             currentUser = user,
-                            isLoading = false
+                            isLoading = false,
+                            mustChangePassword = user.mustChangePassword
                         ) 
                     }
                 } else {
@@ -128,6 +130,59 @@ class AuthViewModel(
     fun logout() {
         _state.update { 
             AuthState(isFirstLaunch = false, settings = it.settings) 
+        }
+    }
+    
+    fun changePassword(currentPassword: String, newPassword: String, confirmPassword: String) {
+        viewModelScope.launch {
+            _state.update { it.copy(isLoading = true, error = null) }
+            
+            val user = _state.value.currentUser
+            if (user == null) {
+                _state.update { it.copy(error = "User not found", isLoading = false) }
+                return@launch
+            }
+            
+            // Validate inputs
+            if (newPassword.length < 6) {
+                _state.update { it.copy(error = "Password must be at least 6 characters", isLoading = false) }
+                return@launch
+            }
+            
+            if (newPassword != confirmPassword) {
+                _state.update { it.copy(error = "Passwords do not match", isLoading = false) }
+                return@launch
+            }
+            
+            // Verify current password
+            val verifiedUser = userRepository.login(user.username, currentPassword)
+            if (verifiedUser == null) {
+                _state.update { it.copy(error = "Current password is incorrect", isLoading = false) }
+                return@launch
+            }
+            
+            try {
+                // Update password
+                userRepository.updatePassword(user.id, newPassword)
+                
+                // Get updated user
+                val updatedUser = userRepository.getUserById(user.id)
+                
+                _state.update { 
+                    it.copy(
+                        currentUser = updatedUser,
+                        mustChangePassword = false,
+                        isLoading = false
+                    )
+                }
+            } catch (e: Exception) {
+                _state.update { 
+                    it.copy(
+                        error = "Failed to change password: ${e.message}",
+                        isLoading = false
+                    ) 
+                }
+            }
         }
     }
     

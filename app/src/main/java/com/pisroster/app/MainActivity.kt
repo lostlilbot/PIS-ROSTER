@@ -85,6 +85,7 @@ fun MainApp(authViewModel: AuthViewModel) {
             startDestination = if (authState.isLoading) Screen.Login.route 
             else if (authState.isFirstLaunch) Screen.Wizard.route 
             else if (!authState.isLoggedIn) Screen.Login.route 
+            else if (authState.mustChangePassword) Screen.PasswordChange.route
             else Screen.Dashboard.route,
             modifier = Modifier.padding(paddingValues)
         ) {
@@ -93,6 +94,16 @@ fun MainApp(authViewModel: AuthViewModel) {
                     state = authState,
                     onLogin = { username, password ->
                         authViewModel.login(username, password)
+                    },
+                    onClearError = { authViewModel.clearError() }
+                )
+            }
+            
+            composable(Screen.PasswordChange.route) {
+                PasswordChangeScreen(
+                    state = authState,
+                    onChangePassword = { current, new, confirm ->
+                        authViewModel.changePassword(current, new, confirm)
                     },
                     onClearError = { authViewModel.clearError() }
                 )

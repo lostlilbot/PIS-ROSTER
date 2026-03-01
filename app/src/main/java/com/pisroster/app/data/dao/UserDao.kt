@@ -35,4 +35,7 @@ interface UserDao {
     
     @Query("SELECT COUNT(*) FROM users WHERE role = :role")
     suspend fun getCountByRole(role: String): Int
+    
+    @Query("UPDATE users SET password = :newPassword, mustChangePassword = 0, updatedAt = :updatedAt WHERE id = :userId")
+    suspend fun updatePassword(userId: Long, newPassword: String, updatedAt: Long = System.currentTimeMillis())
 }

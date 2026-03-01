@@ -23,4 +23,6 @@ class UserRepository(private val userDao: UserDao) {
     suspend fun delete(user: UserEntity) = userDao.delete(user)
     
     suspend fun getCountByRole(role: String): Int = userDao.getCountByRole(role)
+    
+    suspend fun updatePassword(userId: Long, newPassword: String) = userDao.updatePassword(userId, newPassword)
 }

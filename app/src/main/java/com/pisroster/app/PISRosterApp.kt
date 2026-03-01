@@ -2,7 +2,12 @@ package com.pisroster.app
 
 import android.app.Application
 import com.pisroster.app.data.PISDatabase
+import com.pisroster.app.data.TestDataInitializer
 import com.pisroster.app.data.repository.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
 
 class PISRosterApp : Application() {
     
@@ -23,9 +28,22 @@ class PISRosterApp : Application() {
     val documentRepository: DocumentRepository by lazy { DocumentRepository(database.documentDao()) }
     val settingsRepository: SettingsRepository by lazy { SettingsRepository(database.schoolSettingsDao()) }
     
+    // Application scope for async operations
+    private val applicationScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+    
     override fun onCreate() {
         super.onCreate()
         instance = this
+        
+        // Initialize test data
+        applicationScope.launch {
+            val testDataInitializer = TestDataInitializer(
+                userRepository,
+                teacherRepository,
+                studentRepository
+            )
+            testDataInitializer.initializeTestData()
+        }
     }
     
     companion object {
