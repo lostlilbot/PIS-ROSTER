@@ -49,3 +49,4 @@ gradle-8.2.2-bin.zip
 
 # local properties (SDK location)
 local.properties
+*.apk

@@ -11,6 +11,7 @@ import com.pisroster.app.data.entity.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 
 @Database(
     entities = [
@@ -44,6 +45,10 @@ abstract class PISDatabase : RoomDatabase() {
         @Volatile
         private var INSTANCE: PISDatabase? = null
         
+        // Add a latch to ensure callback completes before database is returned
+        private val initializationLock = Object()
+        private var isInitialized = false
+        
         fun getDatabase(context: Context): PISDatabase {
             return INSTANCE ?: synchronized(this) {
                 val instance = Room.databaseBuilder(
@@ -53,24 +58,57 @@ abstract class PISDatabase : RoomDatabase() {
                 )
                     .addCallback(DatabaseCallback())
                     .build()
+                
+                // Wait for callback to complete before returning
+                // This ensures data is populated before app tries to access it
+                runBlocking {
+                    waitForInitialization()
+                }
+                
                 INSTANCE = instance
                 instance
+            }
+        }
+        
+        private suspend fun waitForInitialization() {
+            // Poll until callback has completed or timeout
+            var attempts = 0
+            val maxAttempts = 50 // 5 seconds max wait
+            while (!isInitialized && attempts < maxAttempts) {
+                kotlinx.coroutines.delay(100)
+                attempts++
+            }
+            if (!isInitialized) {
+                Log.w("PISDatabase", "Warning: Database callback did not complete in time")
             }
         }
         
         private class DatabaseCallback : Callback() {
             override fun onCreate(db: SupportSQLiteDatabase) {
                 super.onCreate(db)
-                // Run asynchronously but with error handling
-                INSTANCE?.let { database ->
-                    CoroutineScope(Dispatchers.IO).launch {
-                        try {
-                            populateDefaultData(database)
-                            Log.i("PISDatabase", "Default data populated successfully")
-                        } catch (e: Exception) {
-                            Log.e("PISDatabase", "Error populating default data", e)
+                Log.i("PISDatabase", "Database created, populating default data...")
+                
+                // Run synchronously within callback to ensure data is ready
+                // when getDatabase() returns
+                try {
+                    synchronized(initializationLock) {
+                        INSTANCE?.let { database ->
+                            // Use runBlocking to make this synchronous
+                            runBlocking {
+                                try {
+                                    populateDefaultData(database)
+                                    isInitialized = true
+                                    Log.i("PISDatabase", "Default data populated successfully")
+                                } catch (e: Exception) {
+                                    Log.e("PISDatabase", "Error populating default data", e)
+                                    isInitialized = true // Mark as done even on error
+                                }
+                            }
                         }
                     }
+                } catch (e: Exception) {
+                    Log.e("PISDatabase", "Error in database callback", e)
+                    isInitialized = true // Mark as done even on error
                 }
             }
         }
@@ -110,6 +148,8 @@ abstract class PISDatabase : RoomDatabase() {
                 SubjectEntity(name = "Homeroom", code = "HR", hoursPerWeek = 5, gradeLevel = "ALL")
             )
             database.subjectDao().insertAll(defaultSubjects)
+            
+            Log.i("PISDatabase", "Default data population complete")
         }
     }
 }

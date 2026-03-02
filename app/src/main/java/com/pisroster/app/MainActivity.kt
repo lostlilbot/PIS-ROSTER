@@ -195,12 +195,33 @@ fun MainApp(authViewModel: AuthViewModel) {
                 val parentEntry = remember(navBackStackEntry) {
                     navController.getBackStackEntry(Screen.Dashboard.route)
                 }
+                
+                // Safely get repositories from application
+                val teacherRepo = try {
+                    PISRosterApp.instance.teacherRepository
+                } catch (e: Exception) {
+                    Log.e("MainActivity", "Failed to get teacher repository", e)
+                    return@composable
+                }
+                val studentRepo = try {
+                    PISRosterApp.instance.studentRepository
+                } catch (e: Exception) {
+                    Log.e("MainActivity", "Failed to get student repository", e)
+                    return@composable
+                }
+                val userRepo = try {
+                    PISRosterApp.instance.userRepository
+                } catch (e: Exception) {
+                    Log.e("MainActivity", "Failed to get user repository", e)
+                    return@composable
+                }
+                
                 val dashboardViewModel: DashboardViewModel = viewModel(
                     viewModelStoreOwner = parentEntry,
                     factory = DashboardViewModel.Factory(
-                        PISRosterApp.instance.teacherRepository,
-                        PISRosterApp.instance.studentRepository,
-                        PISRosterApp.instance.userRepository
+                        teacherRepo,
+                        studentRepo,
+                        userRepo
                     )
                 )
                 

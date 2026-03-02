@@ -10,12 +10,20 @@ import kotlinx.coroutines.runBlocking
 
 class PISRosterApp : Application() {
     
+    // Flag to track if app is fully initialized
+    var isReady = false
+        private set
+    
     val database: PISDatabase by lazy {
         try {
-            PISDatabase.getDatabase(this)
+            Log.i("PISRosterApp", "Initializing database...")
+            val db = PISDatabase.getDatabase(this)
+            Log.i("PISRosterApp", "Database initialized successfully")
+            db
         } catch (e: Exception) {
             Log.e("PISRosterApp", "Failed to initialize database", e)
-            throw e // Let it propagate so we can see the error
+            // Return a minimal database or rethrow
+            throw e
         }
     }
     
@@ -40,33 +48,41 @@ class PISRosterApp : Application() {
         
         Log.i("PISRosterApp", "Application starting...")
         
-        // Initialize test data synchronously to ensure it's ready before UI starts
+        // Initialize test data - run synchronously to ensure it's ready before UI starts
+        // Database is already initialized via lazy property, so it's ready
         try {
-            Log.i("PISRosterApp", "Initializing test data...")
+            Log.i("PISRosterApp", "Checking for existing data...")
             runBlocking(Dispatchers.IO) {
                 try {
-                    // First ensure the database callback has completed by checking if settings exist
-                    val existingSettings = settingsRepository.getSettingsSync()
-                    Log.i("PISRosterApp", "Database ready with settings: $existingSettings")
+                    // Check if admin exists (data already initialized)
+                    val adminCount = userRepository.getCountByRole("ADMIN")
                     
-                    // Now initialize test data (this is idempotent - safe to call multiple times)
-                    val testDataInitializer = TestDataInitializer(
-                        userRepository,
-                        teacherRepository,
-                        studentRepository
-                    )
-                    testDataInitializer.initializeTestData()
-                    Log.i("PISRosterApp", "Test data initialized successfully")
+                    if (adminCount == 0) {
+                        Log.i("PISRosterApp", "No admin found, initializing test data...")
+                        val testDataInitializer = TestDataInitializer(
+                            userRepository,
+                            teacherRepository,
+                            studentRepository
+                        )
+                        testDataInitializer.initializeTestData()
+                        Log.i("PISRosterApp", "Test data initialized successfully")
+                    } else {
+                        Log.i("PISRosterApp", "Data already exists ($adminCount admins found)")
+                    }
+                    
+                    isReady = true
+                    Log.i("PISRosterApp", "Application ready")
                 } catch (e: Exception) {
                     Log.e("PISRosterApp", "Error during data initialization", e)
+                    // Mark as ready anyway to allow app to try starting
+                    isReady = true
                 }
             }
         } catch (e: Exception) {
             Log.e("PISRosterApp", "Error during initialization", e)
             // Continue anyway - the app might work with partial data
+            isReady = true
         }
-        
-        Log.i("PISRosterApp", "Application ready")
     }
     
     companion object {
